@@ -1070,43 +1070,43 @@
 
       // Default Initial Fallback Categories
       const defaultCategories = [
-        { id: 'cat_1', type: 'expense', name: 'Ăn uống', icon: '🍔' },
-        { id: 'cat_2', type: 'expense', name: 'Giải trí', icon: '🎬' },
-        { id: 'cat_3', type: 'expense', name: 'Điện nước & Nhà cửa', icon: '⚡' },
-        { id: 'cat_4', type: 'expense', name: 'Mua sắm', icon: '🛒' },
-        { id: 'cat_5', type: 'expense', name: 'Di chuyển', icon: '🚗' },
-        { id: 'cat_6', type: 'expense', name: 'Sức khỏe', icon: '🩺' },
-        { id: 'cat_7', type: 'income', name: 'Lương', icon: '💰' },
-        { id: 'cat_8', type: 'income', name: 'Tiền lãi & Đầu tư', icon: '📈' },
-        { id: 'cat_9', type: 'income', name: 'Thưởng & Khác', icon: '🎁' },
+        // { id: 'cat_1', type: 'expense', name: 'Ăn uống', icon: '🍔' },
+        // { id: 'cat_2', type: 'expense', name: 'Giải trí', icon: '🎬' },
+        // { id: 'cat_3', type: 'expense', name: 'Điện nước & Nhà cửa', icon: '⚡' },
+        // { id: 'cat_4', type: 'expense', name: 'Mua sắm', icon: '🛒' },
+        // { id: 'cat_5', type: 'expense', name: 'Di chuyển', icon: '🚗' },
+        // { id: 'cat_6', type: 'expense', name: 'Sức khỏe', icon: '🩺' },
+        // { id: 'cat_7', type: 'income', name: 'Lương', icon: '💰' },
+        // { id: 'cat_8', type: 'income', name: 'Tiền lãi & Đầu tư', icon: '📈' },
+        // { id: 'cat_9', type: 'income', name: 'Thưởng & Khác', icon: '🎁' },
       ];
 
       // Default Initial Wallets
       const defaultWallets = [
-        {
-          id: 'wal_1',
-          name: 'Tiền mặt',
-          icon: '💵',
-          currency: 'VND',
-          initialBalance: 2000000,
-          includeInTotal: true,
-        },
-        {
-          id: 'wal_2',
-          name: 'Tài khoản Ngân hàng',
-          icon: '🏦',
-          currency: 'VND',
-          initialBalance: 15000000,
-          includeInTotal: true,
-        },
-        {
-          id: 'wal_3',
-          name: 'Sổ tiết kiệm',
-          icon: '🐖',
-          currency: 'VND',
-          initialBalance: 50000000,
-          includeInTotal: false,
-        },
+        // {
+        //   id: 'wal_1',
+        //   name: 'Tiền mặt',
+        //   icon: '💵',
+        //   currency: 'VND',
+        //   initialBalance: 2000000,
+        //   includeInTotal: true,
+        // },
+        // {
+        //   id: 'wal_2',
+        //   name: 'Tài khoản Ngân hàng',
+        //   icon: '🏦',
+        //   currency: 'VND',
+        //   initialBalance: 15000000,
+        //   includeInTotal: true,
+        // },
+        // {
+        //   id: 'wal_3',
+        //   name: 'Sổ tiết kiệm',
+        //   icon: '🐖',
+        //   currency: 'VND',
+        //   initialBalance: 50000000,
+        //   includeInTotal: false,
+        // },
       ];
 
       
@@ -1214,24 +1214,24 @@
           let remoteCategories = null;
 
           try {
-            const wRes = await apiFetch('/api/wallets');
+            const wRes = await apiFetch('/api/wallet');
             remoteWallets = Array.isArray(wRes) ? wRes : wRes.data || wRes.wallets;
           } catch (e) {
-            console.log('No /api/wallets endpoint response, fallbacking local');
+            console.log('No /api/wallet endpoint response, fallbacking local');
           }
 
           try {
-            const tRes = await apiFetch('/api/transactions');
+            const tRes = await apiFetch('/api/transaction');
             remoteTransactions = Array.isArray(tRes) ? tRes : tRes.data || tRes.transactions;
           } catch (e) {
-            console.log('No /api/transactions response');
+            console.log('No /api/transaction response');
           }
 
           try {
-            const cRes = await apiFetch('/api/categories');
+            const cRes = await apiFetch('/api/category');
             remoteCategories = Array.isArray(cRes) ? cRes : cRes.data || cRes.categories;
           } catch (e) {
-            console.log('No /api/categories response');
+            console.log('No /api/category response');
           }
 
           // If remote endpoints returned valid arrays, merge or replace local
@@ -1991,7 +1991,7 @@
         // Send to Cloud API if online
         if (window.state.isOnline) {
           try {
-            await apiFetch('/api/transactions', {
+            await apiFetch('/api/transaction', {
               method: idx >= 0 ? 'PUT' : 'POST',
               body: JSON.stringify(txData),
             });
@@ -2024,7 +2024,7 @@
 
         if (window.state.isOnline) {
           try {
-            await apiFetch('/api/wallets', {
+            await apiFetch('/api/wallet', {
               method: idx >= 0 ? 'PUT' : 'POST',
               body: JSON.stringify(walletData),
             });
@@ -2052,7 +2052,7 @@
 
         if (window.state.isOnline) {
           try {
-            await apiFetch('/api/categories', {
+            await apiFetch('/api/category', {
               method: 'POST',
               body: JSON.stringify(catData),
             });
@@ -2097,7 +2097,7 @@
         window.state.categories = window.state.categories.filter((c) => c.id !== id);
         if (window.state.isOnline) {
           try {
-            await apiFetch(`/api/categories/${id}`, { method: 'DELETE' });
+            await apiFetch(`/api/category/${id}`, { method: 'DELETE' });
           } catch (e) {
             console.warn('Cloud category delete fail', e);
           }
@@ -2284,7 +2284,7 @@
         window.state.transactions = window.state.transactions.filter((t) => t.id !== txId);
         if (window.state.isOnline) {
           try {
-            await apiFetch(`/api/transactions/${txId}`, { method: 'DELETE' });
+            await apiFetch(`/api/transaction/${txId}`, { method: 'DELETE' });
           } catch (e) {
             console.warn('Cloud delete tx error', e);
           }
