@@ -6,8 +6,8 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>Quản Lý Tài Chính Cá Nhân</title>
-    <!-- Tailwind CSS -->
+    <title>Quản Lý Tài Chính Cá Nhân - Cloud Connected</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link
@@ -16,7 +16,7 @@
     />
     <!-- Google Fonts Inter -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <!-- Chart.js -->
@@ -46,7 +46,6 @@
       };
     </script>
     <style>
-      /* Custom Mobile Adjustments & Animations */
       body {
         -webkit-tap-highlight-color: transparent;
       }
@@ -61,14 +60,20 @@
         background: rgba(255, 255, 255, 0.85);
         backdrop-filter: blur(12px);
       }
-      .pb-safe {
-        padding-bottom: env(safe-area-inset-bottom, 80px);
+      @keyframes pulse-slow {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+      }
+      .animate-pulse-slow {
+        animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
       }
     </style>
   </head>
+
   <body
     class="h-full text-slate-800 antialiased selection:bg-brand-500 selection:text-white flex flex-col font-sans"
   >
+    <!-- Sticky Header -->
     <header
       class="sticky top-0 z-30 bg-emerald-700 text-white shadow-md transition-all"
     >
@@ -81,16 +86,28 @@
             class="w-9 h-9 rounded-full border-2 border-emerald-300 object-cover shadow-sm"
           />
           <div>
-            <p class="text-xs text-emerald-100 font-medium">Xin chào 👋</p>
+            <div class="flex items-center space-x-1">
+              <p class="text-[10px] text-emerald-100 font-medium">Xin chào 👋</p>
+              <!-- Cloud Sync Status Badge -->
+              <span
+                id="cloudStatusBadge"
+                class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-emerald-800 text-emerald-200 border border-emerald-500/40"
+                title="Trạng thái kết nối Cloud Backend"
+              >
+                <span id="cloudStatusDot" class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1"></span>
+                <span id="cloudStatusText">Cloud Ready</span>
+              </span>
+            </div>
             <h1
               id="userName"
-              class="text-sm font-bold tracking-tight truncate max-w-[150px]"
-              >Người dùng</h1
+              class="text-sm font-bold tracking-tight truncate max-w-[130px]"
             >
+              Người dùng
+            </h1>
           </div>
         </div>
 
-        <div class="flex items-center space-x-2">
+        <div class="flex items-center space-x-1.5">
           <button
             id="btnPrivacyToggle"
             onclick="togglePrivacy()"
@@ -99,13 +116,14 @@
           >
             <i id="privacyIcon" class="fas fa-eye text-base"></i>
           </button>
+          
           <button
-            id="btnGoogleAuth"
-            onclick="handleAuthAction()"
-            class="flex items-center space-x-1.5 bg-white text-emerald-800 hover:bg-emerald-50 px-3 py-1.5 rounded-full text-xs font-semibold shadow transition"
+            id="btnCloudAuth"
+            onclick="openCloudAuthModal()"
+            class="flex items-center space-x-1 bg-white text-emerald-800 hover:bg-emerald-50 px-2.5 py-1.5 rounded-full text-xs font-semibold shadow transition"
           >
-            <i id="authIcon" class="fab fa-google text-red-500"></i>
-            <span id="authBtnText">Đăng nhập</span>
+            <i id="cloudAuthIcon" class="fas fa-cloud text-emerald-600"></i>
+            <span id="cloudAuthBtnText">Cloud Account</span>
           </button>
         </div>
       </div>
@@ -127,12 +145,14 @@
           <div class="flex justify-between items-start mb-2">
             <span
               class="text-xs uppercase tracking-wider text-emerald-200 font-semibold"
-              >Tổng tài sản</span
             >
+              Tổng tài sản
+            </span>
             <span
               class="text-[10px] bg-emerald-800/60 text-emerald-200 px-2 py-0.5 rounded-full border border-emerald-500/30"
-              >Tính ví gộp</span
             >
+              Tính ví gộp
+            </span>
           </div>
 
           <div
@@ -152,12 +172,8 @@
                 <i class="fas fa-arrow-down text-emerald-300"></i>
               </div>
               <div>
-                <p class="text-[10px] text-emerald-200 uppercase"
-                  >Thu tháng này</p
-                >
-                <p class="font-bold text-emerald-100" id="monthIncomeDisplay"
-                  >0 ₫</p
-                >
+                <p class="text-[10px] text-emerald-200 uppercase">Thu tháng này</p>
+                <p class="font-bold text-emerald-100" id="monthIncomeDisplay">0 ₫</p>
               </div>
             </div>
             <div class="flex items-center space-x-2">
@@ -167,12 +183,8 @@
                 <i class="fas fa-arrow-up text-rose-300"></i>
               </div>
               <div>
-                <p class="text-[10px] text-emerald-200 uppercase"
-                  >Chi tháng này</p
-                >
-                <p class="font-bold text-rose-100" id="monthExpenseDisplay"
-                  >0 ₫</p
-                >
+                <p class="text-[10px] text-emerald-200 uppercase">Chi tháng này</p>
+                <p class="font-bold text-rose-100" id="monthExpenseDisplay">0 ₫</p>
               </div>
             </div>
           </div>
@@ -209,9 +221,7 @@
             class="hidden pt-2 border-t border-slate-100 grid grid-cols-2 gap-2 text-xs"
           >
             <div>
-              <label class="text-[10px] text-slate-500 font-semibold block mb-1"
-                >Tháng / Năm</label
-              >
+              <label class="text-[10px] text-slate-500 font-semibold block mb-1">Tháng / Năm</label>
               <input
                 type="month"
                 id="filterMonth"
@@ -220,9 +230,7 @@
               />
             </div>
             <div>
-              <label class="text-[10px] text-slate-500 font-semibold block mb-1"
-                >Danh mục</label
-              >
+              <label class="text-[10px] text-slate-500 font-semibold block mb-1">Danh mục</label>
               <select
                 id="filterCategory"
                 onchange="renderTransactions()"
@@ -232,9 +240,7 @@
               </select>
             </div>
             <div>
-              <label class="text-[10px] text-slate-500 font-semibold block mb-1"
-                >Ví tiền</label
-              >
+              <label class="text-[10px] text-slate-500 font-semibold block mb-1">Ví tiền</label>
               <select
                 id="filterWallet"
                 onchange="renderTransactions()"
@@ -256,34 +262,24 @@
 
         <!-- Transaction List Header -->
         <div class="flex justify-between items-center px-1">
-          <h2
-            class="text-sm font-bold text-slate-800 flex items-center space-x-2"
-          >
+          <h2 class="text-sm font-bold text-slate-800 flex items-center space-x-2">
             <i class="fas fa-history text-emerald-600"></i>
             <span>Nhật ký giao dịch</span>
           </h2>
-          <span
-            id="transactionCountBadge"
-            class="text-xs text-slate-500 font-medium"
-            >0 giao dịch</span
-          >
+          <span id="transactionCountBadge" class="text-xs text-slate-500 font-medium">0 giao dịch</span>
         </div>
 
         <!-- Transaction Groups Container -->
         <div id="transactionListContainer" class="space-y-3">
-          <!-- Grouped transactions will render dynamically here -->
+          <!-- Grouped transactions rendered dynamically -->
         </div>
       </section>
 
       <section id="viewWallets" class="hidden space-y-4">
         <div class="flex justify-between items-center px-1">
           <div>
-            <h2 class="text-base font-bold text-slate-800"
-              >Danh sách ví tiền</h2
-            >
-            <p class="text-xs text-slate-500"
-              >Quản lý và theo dõi dòng tiền riêng biệt</p
-            >
+            <h2 class="text-base font-bold text-slate-800">Danh sách ví tiền</h2>
+            <p class="text-xs text-slate-500">Quản lý và theo dõi dòng tiền riêng biệt</p>
           </div>
           <button
             onclick="openWalletModal()"
@@ -296,9 +292,7 @@
 
         <!-- Group 1: Included in Total Assets -->
         <div class="space-y-2">
-          <div
-            class="flex items-center space-x-2 text-xs font-bold text-emerald-700 uppercase tracking-wide px-1"
-          >
+          <div class="flex items-center space-x-2 text-xs font-bold text-emerald-700 uppercase tracking-wide px-1">
             <i class="fas fa-check-circle"></i>
             <span>Ví tính vào tổng tài sản</span>
           </div>
@@ -309,9 +303,7 @@
 
         <!-- Group 2: Excluded from Total Assets -->
         <div class="space-y-2 pt-2">
-          <div
-            class="flex items-center space-x-2 text-xs font-bold text-slate-500 uppercase tracking-wide px-1"
-          >
+          <div class="flex items-center space-x-2 text-xs font-bold text-slate-500 uppercase tracking-wide px-1">
             <i class="fas fa-minus-circle"></i>
             <span>Ví không tính vào tổng tài sản</span>
           </div>
@@ -320,42 +312,25 @@
           </div>
         </div>
 
-        <!-- Wallet Cashflow Detail Modal / Drawer inline container -->
+        <!-- Wallet Detail Modal Drawer -->
         <div
           id="walletDetailCard"
           class="hidden bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-3"
         >
           <div class="flex justify-between items-start border-b pb-2">
             <div class="flex items-center space-x-3">
-              <span
-                id="detailWalletIcon"
-                class="text-2xl p-2 bg-slate-100 rounded-xl"
-                >👛</span
-              >
+              <span id="detailWalletIcon" class="text-2xl p-2 bg-slate-100 rounded-xl">👛</span>
               <div>
-                <h3
-                  id="detailWalletName"
-                  class="font-bold text-slate-800 text-sm"
-                  >Tên Ví</h3
-                >
-                <p
-                  id="detailWalletBalance"
-                  class="text-xs text-emerald-600 font-bold"
-                  >0 ₫</p
-                >
+                <h3 id="detailWalletName" class="font-bold text-slate-800 text-sm">Tên Ví</h3>
+                <p id="detailWalletBalance" class="text-xs text-emerald-600 font-bold">0 ₫</p>
               </div>
             </div>
-            <button
-              onclick="closeWalletDetail()"
-              class="text-slate-400 hover:text-slate-600 p-1"
-            >
+            <button onclick="closeWalletDetail()" class="text-slate-400 hover:text-slate-600 p-1">
               <i class="fas fa-times"></i>
             </button>
           </div>
           <div>
-            <h4 class="text-xs font-semibold text-slate-600 mb-2"
-              >Thống kê dòng tiền gần đây</h4
-            >
+            <h4 class="text-xs font-semibold text-slate-600 mb-2">Thống kê dòng tiền 7 ngày gần đây</h4>
             <div class="h-48 w-full">
               <canvas id="walletCashflowChart"></canvas>
             </div>
@@ -373,9 +348,7 @@
 
       <section id="viewStats" class="hidden space-y-4">
         <div class="flex justify-between items-center px-1">
-          <h2 class="text-base font-bold text-slate-800"
-            >Phân tích & Thống kê</h2
-          >
+          <h2 class="text-base font-bold text-slate-800">Phân tích & Thống kê</h2>
           <select
             id="statsPeriod"
             onchange="renderStatsCharts()"
@@ -388,12 +361,8 @@
         </div>
 
         <!-- Income vs Expense Bar Chart -->
-        <div
-          class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 space-y-2"
-        >
-          <h3
-            class="text-xs font-bold text-slate-700 flex items-center justify-between"
-          >
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 space-y-2">
+          <h3 class="text-xs font-bold text-slate-700 flex items-center justify-between">
             <span>Thu nhập vs Chi tiêu</span>
             <i class="fas fa-chart-bar text-emerald-600"></i>
           </h3>
@@ -403,12 +372,8 @@
         </div>
 
         <!-- Expense Category Donut Chart -->
-        <div
-          class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 space-y-2"
-        >
-          <h3
-            class="text-xs font-bold text-slate-700 flex items-center justify-between"
-          >
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 space-y-2">
+          <h3 class="text-xs font-bold text-slate-700 flex items-center justify-between">
             <span>Cơ cấu chi tiêu theo danh mục</span>
             <i class="fas fa-chart-pie text-emerald-600"></i>
           </h3>
@@ -416,18 +381,16 @@
             <canvas id="categoryDonutChart"></canvas>
           </div>
           <div id="categoryBreakdownList" class="space-y-1.5 pt-2 text-xs">
-            <!-- Dynamic breakdown category list -->
+            <!-- Dynamic category breakdown -->
           </div>
         </div>
       </section>
 
       <section id="viewSettings" class="hidden space-y-4">
-        <h2 class="text-base font-bold text-slate-800 px-1">Cài đặt cá nhân</h2>
+        <h2 class="text-base font-bold text-slate-800 px-1">Cài đặt & Cloud Backend</h2>
 
         <!-- User Info Box -->
-        <div
-          class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 space-y-3"
-        >
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 space-y-3">
           <div class="flex items-center space-x-3">
             <img
               id="settingsUserAvatar"
@@ -435,12 +398,8 @@
               class="w-12 h-12 rounded-full border-2 border-emerald-500 object-cover"
             />
             <div>
-              <h3 id="settingsUserName" class="font-bold text-slate-800 text-sm"
-                >Người dùng</h3
-              >
-              <p id="settingsUserEmail" class="text-xs text-slate-500"
-                >Chế độ Khách (Offline)</p
-              >
+              <h3 id="settingsUserName" class="font-bold text-slate-800 text-sm">Người dùng</h3>
+              <p id="settingsUserEmail" class="text-xs text-slate-500">Tài khoản Nội bộ (Guest)</p>
             </div>
           </div>
           <div class="pt-2 border-t border-slate-100 flex flex-col space-y-2">
@@ -448,23 +407,60 @@
               onclick="openEditProfileModal()"
               class="w-full text-left py-2 px-3 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700 rounded-xl transition flex justify-between items-center"
             >
-              <span
-                ><i class="fas fa-user-edit mr-2 text-emerald-600"></i>Đổi tên
-                hiển thị</span
-              >
+              <span><i class="fas fa-user-edit mr-2 text-emerald-600"></i>Đổi tên hiển thị</span>
               <i class="fas fa-chevron-right text-slate-400"></i>
             </button>
           </div>
         </div>
 
-        <!-- Category Management Section -->
-        <div
-          class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 space-y-3"
-        >
+        <!-- Cloud Backend Settings Box -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 space-y-3">
           <div class="flex justify-between items-center">
-            <h3
-              class="text-xs font-bold text-slate-800 flex items-center space-x-2"
+            <h3 class="text-xs font-bold text-slate-800 flex items-center space-x-2">
+              <i class="fas fa-server text-emerald-600"></i>
+              <span>Cấu hình Cloud Backend</span>
+            </h3>
+            <span id="backendStatusTag" class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-100 text-amber-700">
+              Đang kiểm tra...
+            </span>
+          </div>
+
+          <div>
+            <label class="text-[11px] text-slate-500 font-semibold block mb-1">Backend API URL:</label>
+            <input
+              type="text"
+              id="inputApiUrl"
+              value="https://cashflowbe-iya7.onrender.com"
+              class="w-full p-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-mono"
+            />
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <button
+              onclick="testBackendConnection()"
+              class="py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition flex items-center justify-center space-x-1"
             >
+              <i class="fas fa-plug text-emerald-600"></i>
+              <span>Kiểm tra kết nối</span>
+            </button>
+
+            <button
+              onclick="syncWithCloudBackend(true)"
+              class="py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl transition shadow flex items-center justify-center space-x-1"
+            >
+              <i class="fas fa-sync-alt"></i>
+              <span>Đồng bộ ngay</span>
+            </button>
+          </div>
+          <p class="text-[10px] text-slate-400 italic">
+            * Backend trên Render có thể mất 15-30 giây để khởi động lại nếu đang ở trạng thái nghỉ.
+          </p>
+        </div>
+
+        <!-- Category Management Section -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 space-y-3">
+          <div class="flex justify-between items-center">
+            <h3 class="text-xs font-bold text-slate-800 flex items-center space-x-2">
               <i class="fas fa-tags text-emerald-600"></i>
               <span>Quản lý danh mục thu/chi</span>
             </h3>
@@ -484,19 +480,14 @@
         </div>
 
         <!-- Export Excel Section -->
-        <div
-          class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 space-y-3"
-        >
-          <h3
-            class="text-xs font-bold text-slate-800 flex items-center space-x-2"
-          >
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 space-y-3">
+          <h3 class="text-xs font-bold text-slate-800 flex items-center space-x-2">
             <i class="fas fa-file-excel text-emerald-600"></i>
             <span>Xuất báo cáo tài chính (.XLSX)</span>
           </h3>
-          <p class="text-xs text-slate-500"
-            >Tải xuống toàn bộ lịch sử thu chi theo chuẩn định dạng Excel để lưu
-            trữ hoặc phân tích sâu hơn.</p
-          >
+          <p class="text-xs text-slate-500">
+            Tải xuống toàn bộ lịch sử thu chi theo chuẩn định dạng Excel để lưu trữ hoặc phân tích sâu hơn.
+          </p>
           <button
             onclick="exportToExcel()"
             class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center space-x-2"
@@ -519,9 +510,7 @@
     </div>
 
     <!-- Mobile Bottom Navigation Bar -->
-    <nav
-      class="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-slate-200 py-1.5 px-3"
-    >
+    <nav class="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-slate-200 py-1.5 px-3">
       <div class="max-w-md mx-auto grid grid-cols-4 gap-1 text-center">
         <button
           onclick="switchTab('home')"
@@ -559,63 +548,146 @@
     </nav>
 
     <div
+      id="cloudAuthModal"
+      class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4"
+    >
+      <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-5 space-y-4">
+        <div class="flex justify-between items-center border-b pb-2">
+          <h3 id="cloudAuthTitle" class="font-bold text-slate-800 text-sm">
+            Đăng Nhập Backend Cloud
+          </h3>
+          <button onclick="closeCloudAuthModal()" class="text-slate-400 hover:text-slate-600 p-1">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <!-- Mode Toggle Tabs -->
+        <div class="grid grid-cols-2 gap-1 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+          <button
+            id="tabAuthLogin"
+            onclick="switchAuthTab('login')"
+            class="py-1.5 rounded-lg bg-white text-emerald-700 shadow transition"
+          >
+            Đăng nhập
+          </button>
+          <button
+            id="tabAuthRegister"
+            onclick="switchAuthTab('register')"
+            class="py-1.5 rounded-lg text-slate-600 transition"
+          >
+            Đăng ký
+          </button>
+        </div>
+
+        <form id="cloudAuthForm" onsubmit="handleCloudAuthSubmit(event)" class="space-y-3 text-xs">
+          <div id="authNameField" class="hidden">
+            <label class="font-semibold text-slate-600 block mb-1">Họ & Tên</label>
+            <input
+              type="text"
+              id="authName"
+              placeholder="Nhập tên của bạn"
+              class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500"
+            />
+          </div>
+
+          <div>
+            <label class="font-semibold text-slate-600 block mb-1">Email / Tài khoản</label>
+            <input
+              type="email"
+              id="authEmail"
+              required
+              placeholder="email@example.com"
+              class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500"
+            />
+          </div>
+
+          <div>
+            <label class="font-semibold text-slate-600 block mb-1">Mật khẩu</label>
+            <input
+              type="password"
+              id="authPassword"
+              required
+              placeholder="••••••••"
+              class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500"
+            />
+          </div>
+
+          <div class="pt-2 flex space-x-2">
+            <button
+              type="button"
+              onclick="closeCloudAuthModal()"
+              class="w-1/3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl"
+            >
+              Hủy
+            </button>
+            <button
+              type="submit"
+              id="btnAuthSubmit"
+              class="w-2/3 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow transition"
+            >
+              Xác nhận
+            </button>
+          </div>
+        </form>
+
+        <div id="cloudAuthFooter" class="pt-2 border-t text-center text-xs text-slate-500">
+          <button onclick="logoutCloudAccount()" id="btnLogoutCloud" class="hidden text-rose-600 hover:underline font-semibold">
+            <i class="fas fa-sign-out-alt mr-1"></i>Đăng xuất Cloud Account
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
       id="transactionModal"
       class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity"
     >
       <div
-        class="bg-white w-full max-w-md rounded-t-2xl sm:rounded-2xl shadow-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto no-scrollbar animate-slide-up"
+        class="bg-white w-full max-w-md rounded-t-2xl sm:rounded-2xl shadow-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto no-scrollbar"
       >
         <div class="flex justify-between items-center border-b pb-3">
-          <h3 id="txModalTitle" class="font-bold text-slate-800 text-sm"
-            >Thêm giao dịch mới</h3
-          >
-          <button
-            onclick="closeTransactionModal()"
-            class="text-slate-400 hover:text-slate-600 p-1"
-          >
+          <h3 id="txModalTitle" class="font-bold text-slate-800 text-sm">Thêm giao dịch mới</h3>
+          <button onclick="closeTransactionModal()" class="text-slate-400 hover:text-slate-600 p-1">
             <i class="fas fa-times text-base"></i>
           </button>
         </div>
 
         <!-- Transaction Type Switcher Tabs -->
-        <div
-          class="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl text-xs font-semibold"
-        >
+        <div class="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
           <button
             type="button"
             id="txTypeExpense"
             onclick="setTxType('expense')"
             class="py-1.5 rounded-lg bg-white text-rose-600 shadow transition"
-            >Chi tiêu</button
           >
+            Chi tiêu
+          </button>
           <button
             type="button"
             id="txTypeIncome"
             onclick="setTxType('income')"
             class="py-1.5 rounded-lg text-slate-600 hover:text-emerald-600 transition"
-            >Thu nhập</button
           >
+            Thu nhập
+          </button>
           <button
             type="button"
             id="txTypeTransfer"
             onclick="setTxType('transfer')"
             class="py-1.5 rounded-lg text-slate-600 hover:text-indigo-600 transition"
-            >Chuyển tiền</button
           >
+            Chuyển tiền
+          </button>
         </div>
 
-        <form
-          id="transactionForm"
-          onsubmit="saveTransaction(event)"
-          class="space-y-3 text-xs"
-        >
+        <form id="transactionForm" onsubmit="saveTransaction(event)" class="space-y-3 text-xs">
           <input type="hidden" id="txId" />
 
           <!-- Amount Field -->
           <div>
-            <label class="font-semibold text-slate-600 block mb-1"
-              >Số tiền (<span class="text-rose-500">*</span>)</label
-            >
+            <label class="font-semibold text-slate-600 block mb-1">
+              Số tiền (<span class="text-rose-500">*</span>)
+            </label>
             <div class="relative">
               <input
                 type="number"
@@ -625,19 +697,16 @@
                 placeholder="0"
                 class="w-full pl-3 pr-10 py-2.5 text-lg font-bold bg-slate-50 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-500"
               />
-              <span
-                class="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-slate-400"
-                >₫</span
-              >
+              <span class="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">₫</span>
             </div>
           </div>
 
           <!-- Fields for Expense & Income -->
           <div id="standardTxFields" class="space-y-3">
             <div>
-              <label class="font-semibold text-slate-600 block mb-1"
-                >Danh mục (<span class="text-rose-500">*</span>)</label
-              >
+              <label class="font-semibold text-slate-600 block mb-1">
+                Danh mục (<span class="text-rose-500">*</span>)
+              </label>
               <select
                 id="txCategory"
                 required
@@ -648,9 +717,9 @@
             </div>
 
             <div>
-              <label class="font-semibold text-slate-600 block mb-1"
-                >Chọn Ví (<span class="text-rose-500">*</span>)</label
-              >
+              <label class="font-semibold text-slate-600 block mb-1">
+                Chọn Ví (<span class="text-rose-500">*</span>)
+              </label>
               <select
                 id="txWallet"
                 required
@@ -664,10 +733,9 @@
           <!-- Fields for Transfer -->
           <div id="transferTxFields" class="hidden space-y-3">
             <div>
-              <label class="font-semibold text-slate-600 block mb-1"
-                >Ví nguồn (Trừ tiền) (<span class="text-rose-500">*</span
-                >)</label
-              >
+              <label class="font-semibold text-slate-600 block mb-1">
+                Ví nguồn (Trừ tiền) (<span class="text-rose-500">*</span>)
+              </label>
               <select
                 id="txSourceWallet"
                 class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500"
@@ -676,10 +744,9 @@
               </select>
             </div>
             <div>
-              <label class="font-semibold text-slate-600 block mb-1"
-                >Ví đích (Cộng tiền) (<span class="text-rose-500">*</span
-                >)</label
-              >
+              <label class="font-semibold text-slate-600 block mb-1">
+                Ví đích (Cộng tiền) (<span class="text-rose-500">*</span>)
+              </label>
               <select
                 id="txTargetWallet"
                 class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500"
@@ -691,9 +758,7 @@
 
           <!-- Date -->
           <div>
-            <label class="font-semibold text-slate-600 block mb-1"
-              >Ngày thực hiện</label
-            >
+            <label class="font-semibold text-slate-600 block mb-1">Ngày thực hiện</label>
             <input
               type="date"
               id="txDate"
@@ -704,9 +769,7 @@
 
           <!-- Note -->
           <div>
-            <label class="font-semibold text-slate-600 block mb-1"
-              >Ghi chú (Tùy chọn)</label
-            >
+            <label class="font-semibold text-slate-600 block mb-1">Ghi chú (Tùy chọn)</label>
             <input
               type="text"
               id="txNote"
@@ -720,13 +783,15 @@
               type="button"
               onclick="closeTransactionModal()"
               class="w-1/3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition"
-              >Hủy</button
             >
+              Hủy
+            </button>
             <button
               type="submit"
               class="w-2/3 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow transition"
-              >Lưu giao dịch</button
             >
+              Lưu giao dịch
+            </button>
           </div>
         </form>
       </div>
@@ -736,32 +801,21 @@
       id="walletModal"
       class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4"
     >
-      <div
-        class="bg-white w-full max-w-md rounded-t-2xl sm:rounded-2xl shadow-2xl p-5 space-y-4"
-      >
+      <div class="bg-white w-full max-w-md rounded-t-2xl sm:rounded-2xl shadow-2xl p-5 space-y-4">
         <div class="flex justify-between items-center border-b pb-3">
-          <h3 id="walletModalTitle" class="font-bold text-slate-800 text-sm"
-            >Tạo Ví Tiền Mới</h3
-          >
-          <button
-            onclick="closeWalletModal()"
-            class="text-slate-400 hover:text-slate-600 p-1"
-          >
+          <h3 id="walletModalTitle" class="font-bold text-slate-800 text-sm">Tạo Ví Tiền Mới</h3>
+          <button onclick="closeWalletModal()" class="text-slate-400 hover:text-slate-600 p-1">
             <i class="fas fa-times"></i>
           </button>
         </div>
 
-        <form
-          id="walletForm"
-          onsubmit="saveWallet(event)"
-          class="space-y-3 text-xs"
-        >
+        <form id="walletForm" onsubmit="saveWallet(event)" class="space-y-3 text-xs">
           <input type="hidden" id="walletId" />
 
           <div>
-            <label class="font-semibold text-slate-600 block mb-1"
-              >Tên ví (<span class="text-rose-500">*</span>)</label
-            >
+            <label class="font-semibold text-slate-600 block mb-1">
+              Tên ví (<span class="text-rose-500">*</span>)
+            </label>
             <input
               type="text"
               id="walletName"
@@ -773,9 +827,7 @@
 
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="font-semibold text-slate-600 block mb-1"
-                >Biểu tượng Emoji</label
-              >
+              <label class="font-semibold text-slate-600 block mb-1">Biểu tượng Emoji</label>
               <input
                 type="text"
                 id="walletIcon"
@@ -786,9 +838,7 @@
               />
             </div>
             <div>
-              <label class="font-semibold text-slate-600 block mb-1"
-                >Loại tiền tệ</label
-              >
+              <label class="font-semibold text-slate-600 block mb-1">Loại tiền tệ</label>
               <select
                 id="walletCurrency"
                 class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
@@ -801,9 +851,7 @@
           </div>
 
           <div>
-            <label class="font-semibold text-slate-600 block mb-1"
-              >Số dư ban đầu</label
-            >
+            <label class="font-semibold text-slate-600 block mb-1">Số dư ban đầu</label>
             <input
               type="number"
               id="walletInitialBalance"
@@ -812,10 +860,7 @@
             />
           </div>
 
-          <!-- Checkbox for Total Asset Inclusion -->
-          <div
-            class="bg-emerald-50/70 p-3 rounded-xl border border-emerald-200 flex items-start space-x-3"
-          >
+          <div class="bg-emerald-50/70 p-3 rounded-xl border border-emerald-200 flex items-start space-x-3">
             <input
               type="checkbox"
               id="walletIncludeTotal"
@@ -823,13 +868,10 @@
               class="mt-0.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 w-4 h-4"
             />
             <label for="walletIncludeTotal" class="cursor-pointer">
-              <span class="font-bold text-emerald-900 block"
-                >Nhập vào tổng tài sản</span
-              >
-              <span class="text-[11px] text-emerald-700 block leading-tight"
-                >Nếu tích chọn, mọi biến động số dư của ví này sẽ được tính vào
-                Tổng Tài Sản chung.</span
-              >
+              <span class="font-bold text-emerald-900 block">Nhập vào tổng tài sản</span>
+              <span class="text-[11px] text-emerald-700 block leading-tight">
+                Nếu tích chọn, mọi biến động số dư của ví này sẽ được tính vào Tổng Tài Sản chung.
+              </span>
             </label>
           </div>
 
@@ -838,13 +880,15 @@
               type="button"
               onclick="closeWalletModal()"
               class="w-1/3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl"
-              >Hủy</button
             >
+              Hủy
+            </button>
             <button
               type="submit"
               class="w-2/3 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow"
-              >Lưu thông tin ví</button
             >
+              Lưu thông tin ví
+            </button>
           </div>
         </form>
       </div>
@@ -854,15 +898,10 @@
       id="txDetailModal"
       class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4"
     >
-      <div
-        class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-5 space-y-4"
-      >
+      <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-5 space-y-4">
         <div class="flex justify-between items-center border-b pb-2">
           <h3 class="font-bold text-slate-800 text-sm">Chi tiết giao dịch</h3>
-          <button
-            onclick="closeTxDetailModal()"
-            class="text-slate-400 hover:text-slate-600 p-1"
-          >
+          <button onclick="closeTxDetailModal()" class="text-slate-400 hover:text-slate-600 p-1">
             <i class="fas fa-times"></i>
           </button>
         </div>
@@ -888,32 +927,22 @@
       </div>
     </div>
 
+    <!-- Category Modal -->
     <div
       id="categoryModal"
       class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4"
     >
-      <div
-        class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-5 space-y-4"
-      >
+      <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-5 space-y-4">
         <div class="flex justify-between items-center border-b pb-2">
           <h3 class="font-bold text-slate-800 text-sm">Thêm danh mục mới</h3>
-          <button
-            onclick="closeCategoryModal()"
-            class="text-slate-400 hover:text-slate-600 p-1"
-          >
+          <button onclick="closeCategoryModal()" class="text-slate-400 hover:text-slate-600 p-1">
             <i class="fas fa-times"></i>
           </button>
         </div>
 
-        <form
-          id="categoryForm"
-          onsubmit="saveCategory(event)"
-          class="space-y-3 text-xs"
-        >
+        <form id="categoryForm" onsubmit="saveCategory(event)" class="space-y-3 text-xs">
           <div>
-            <label class="font-semibold text-slate-600 block mb-1"
-              >Loại danh mục</label
-            >
+            <label class="font-semibold text-slate-600 block mb-1">Loại danh mục</label>
             <select
               id="catType"
               class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
@@ -923,9 +952,7 @@
             </select>
           </div>
           <div>
-            <label class="font-semibold text-slate-600 block mb-1"
-              >Tên danh mục</label
-            >
+            <label class="font-semibold text-slate-600 block mb-1">Tên danh mục</label>
             <input
               type="text"
               id="catName"
@@ -935,9 +962,7 @@
             />
           </div>
           <div>
-            <label class="font-semibold text-slate-600 block mb-1"
-              >Biểu tượng Emoji</label
-            >
+            <label class="font-semibold text-slate-600 block mb-1">Biểu tượng Emoji</label>
             <input
               type="text"
               id="catIcon"
@@ -953,13 +978,15 @@
               type="button"
               onclick="closeCategoryModal()"
               class="w-1/3 py-2 bg-slate-100 text-slate-700 font-semibold rounded-xl"
-              >Hủy</button
             >
+              Hủy
+            </button>
             <button
               type="submit"
               class="w-2/3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow"
-              >Lưu danh mục</button
             >
+              Lưu danh mục
+            </button>
           </div>
         </form>
       </div>
@@ -970,23 +997,16 @@
       id="profileModal"
       class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4"
     >
-      <div
-        class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-5 space-y-4"
-      >
+      <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-5 space-y-4">
         <div class="flex justify-between items-center border-b pb-2">
           <h3 class="font-bold text-slate-800 text-sm">Đổi tên hiển thị</h3>
-          <button
-            onclick="closeProfileModal()"
-            class="text-slate-400 hover:text-slate-600 p-1"
-          >
+          <button onclick="closeProfileModal()" class="text-slate-400 hover:text-slate-600 p-1">
             <i class="fas fa-times"></i>
           </button>
         </div>
         <div class="space-y-3 text-xs">
           <div>
-            <label class="font-semibold text-slate-600 block mb-1"
-              >Tên hiển thị mới</label
-            >
+            <label class="font-semibold text-slate-600 block mb-1">Tên hiển thị mới</label>
             <input
               type="text"
               id="inputProfileName"
@@ -998,13 +1018,15 @@
             <button
               onclick="closeProfileModal()"
               class="w-1/3 py-2 bg-slate-100 text-slate-700 font-semibold rounded-xl"
-              >Hủy</button
             >
+              Hủy
+            </button>
             <button
               onclick="saveProfileName()"
               class="w-2/3 py-2 bg-emerald-600 text-white font-bold rounded-xl shadow"
-              >Cập nhật</button
             >
+              Cập nhật
+            </button>
           </div>
         </div>
       </div>
@@ -1019,51 +1041,21 @@
       <span id="toastMsg">Thông báo</span>
     </div>
 
-    <script type="module">
-      import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
-      import {
-        getAuth,
-        signInWithPopup,
-        GoogleAuthProvider,
-        signOut,
-        onAuthStateChanged,
-        signInAnonymously,
-        signInWithCustomToken,
-      } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
-      import {
-        getFirestore,
-        collection,
-        doc,
-        setDoc,
-        addDoc,
-        updateDoc,
-        deleteDoc,
-        onSnapshot,
-      } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
-
-      // APP GLOBAL STATE
-
-      const firebaseConfig = {
-        apiKey: 'AIzaSyB_vh2hbu_ts7_uglzQYvHJGXTtCaCudiE',
-        authDomain: 'cashflow-3f09d.firebaseapp.com',
-        projectId: 'cashflow-3f09d',
-        storageBucket: 'cashflow-3f09d.firebasestorage.app',
-        messagingSenderId: '65444438978',
-        appId: '1:65444438978:web:dc3c0b6ad1f00d8bd4ec5b',
-        measurementId: 'G-SQJQ6R7CYK',
+    <script>
+      // GLOBAL APP STATE & BACKEND CONFIGURATION
+      window.config = {
+        backendUrl: localStorage.getItem('cashflow_be_url') || 'https://cashflowbe-iya7.onrender.com',
+        authToken: localStorage.getItem('cashflow_auth_token') || null,
+        user: JSON.parse(localStorage.getItem('cashflow_user') || 'null'),
       };
 
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      const db = getFirestore(app);
-
-      // State Variables
       window.state = {
-        currentUser: null,
-        userId: 'local-user',
+        isOnline: false,
+        isSyncing: false,
         isPrivacyHidden: false,
         activeTab: 'home',
         currentTxType: 'expense',
+        authMode: 'login', // 'login' or 'register'
         selectedWalletForDetail: null,
         activeTxDetailId: null,
         wallets: [],
@@ -1076,16 +1068,11 @@
       let incExpChartInstance = null;
       let donutChartInstance = null;
 
-      // Default Categories
+      // Default Initial Fallback Categories
       const defaultCategories = [
         { id: 'cat_1', type: 'expense', name: 'Ăn uống', icon: '🍔' },
         { id: 'cat_2', type: 'expense', name: 'Giải trí', icon: '🎬' },
-        {
-          id: 'cat_3',
-          type: 'expense',
-          name: 'Điện nước & Nhà cửa',
-          icon: '⚡',
-        },
+        { id: 'cat_3', type: 'expense', name: 'Điện nước & Nhà cửa', icon: '⚡' },
         { id: 'cat_4', type: 'expense', name: 'Mua sắm', icon: '🛒' },
         { id: 'cat_5', type: 'expense', name: 'Di chuyển', icon: '🚗' },
         { id: 'cat_6', type: 'expense', name: 'Sức khỏe', icon: '🩺' },
@@ -1122,189 +1109,311 @@
         },
       ];
 
-      async function initAuth() {
+      
+      // Generic Cloud Backend API Requester
+      async function apiFetch(endpoint, options = {}) {
+        const baseUrl = window.config.backendUrl.replace(/\/$/, '');
+        const url = `${baseUrl}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
+
+        const headers = {
+          'Content-Type': 'application/json',
+          ...(options.headers || {}),
+        };
+
+        if (window.config.authToken) {
+          headers['Authorization'] = `Bearer ${window.config.authToken}`;
+        }
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+
         try {
-          if (
-            typeof __initial_auth_token !== 'undefined' &&
-            __initial_auth_token
-          ) {
-            await signInWithCustomToken(auth, __initial_auth_token);
+          const res = await fetch(url, { ...options, headers, signal: controller.signal });
+          clearTimeout(timeoutId);
+
+          const contentType = res.headers.get('content-type');
+          let data = null;
+          if (contentType && contentType.includes('application/json')) {
+            data = await res.json();
           } else {
-            await signInAnonymously(auth);
+            data = await res.text();
           }
+
+          if (!res.ok) {
+            throw new Error((data && data.message) || (data && data.error) || `HTTP ${res.status}`);
+          }
+          return data;
         } catch (err) {
-          console.warn('Auth fallback to local mode:', err);
-        }
-
-        onAuthStateChanged(auth, (user) => {
-          if (user) {
-            window.state.currentUser = user;
-            window.state.userId = user.uid;
-            updateUserUI(user);
-            setupFirestoreListeners();
-          } else {
-            window.state.currentUser = null;
-            window.state.userId =
-              'guest_' + Math.random().toString(36).substring(2, 8);
-            updateUserUI(null);
-            loadLocalDataFallback();
-          }
-        });
-      }
-
-      function updateUserUI(user) {
-        const avatar = document.getElementById('userAvatar');
-        const nameEl = document.getElementById('userName');
-        const authBtnText = document.getElementById('authBtnText');
-        const authIcon = document.getElementById('authIcon');
-        const settingsName = document.getElementById('settingsUserName');
-        const settingsEmail = document.getElementById('settingsUserEmail');
-        const settingsAvatar = document.getElementById('settingsUserAvatar');
-
-        if (user && !user.isAnonymous) {
-          avatar.src =
-            user.photoURL ||
-            `https://placehold.co/100x100/10b981/ffffff?text=${encodeURIComponent(user.displayName || 'User')}`;
-          settingsAvatar.src = avatar.src;
-          nameEl.textContent = user.displayName || 'Người dùng';
-          settingsName.textContent = user.displayName || 'Người dùng Google';
-          settingsEmail.textContent = user.email || '';
-          authBtnText.textContent = 'Đăng xuất';
-          authIcon.className = 'fas fa-sign-out-alt text-emerald-600';
-        } else {
-          avatar.src = `https://placehold.co/100x100/10b981/ffffff?text=Kh%C3%A1ch`;
-          settingsAvatar.src = avatar.src;
-          nameEl.textContent = 'Khách (Nội bộ)';
-          settingsName.textContent = 'Tài khoản Nội bộ';
-          settingsEmail.textContent = 'Lưu trữ trên thiết bị này';
-          authBtnText.textContent = 'Đăng nhập Google';
-          authIcon.className = 'fab fa-google text-red-500';
+          clearTimeout(timeoutId);
+          console.warn(`[API] Error request to ${url}:`, err.message);
+          throw err;
         }
       }
 
-      window.handleAuthAction = async function () {
-        if (window.state.currentUser && !window.state.currentUser.isAnonymous) {
-          await signOut(auth);
-          showToast('Đã đăng xuất tài khoản');
-        } else {
+      // Test Connectivity to Render Backend
+      async function testBackendConnection() {
+        const tag = document.getElementById('backendStatusTag');
+        tag.className = 'text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-100 text-amber-700 animate-pulse-slow';
+        tag.textContent = 'Đang kết nối...';
+
+        try {
+          // Attempt health endpoint or root ping
+          let res = null;
           try {
-            const provider = new GoogleAuthProvider();
-            await signInWithPopup(auth, provider);
-            showToast('Đăng nhập Google thành công!');
-          } catch (e) {
-            console.error('Google Auth error', e);
-            showToast('Không thể mở popup Google. Đã bật chế độ offline.');
+            res = await apiFetch('/api/health');
+          } catch (e1) {
+            try {
+              res = await apiFetch('/health');
+            } catch (e2) {
+              res = await apiFetch('/');
+            }
           }
+
+          window.state.isOnline = true;
+          updateCloudStatusBadge(true);
+          tag.className = 'text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-700';
+          tag.textContent = 'Hoạt động (Cloud OK)';
+          showToast('Đã kết nối thành công tới Cloud Backend!');
+          return true;
+        } catch (err) {
+          window.state.isOnline = false;
+          updateCloudStatusBadge(false);
+          tag.className = 'text-[10px] px-2 py-0.5 rounded-full font-bold bg-rose-100 text-rose-700';
+          tag.textContent = 'Chưa sẵn sàng / Offline';
+          showToast('Không thể phản hồi từ Cloud Backend (Render ngủ hoặc ngắt mạng).');
+          return false;
         }
-      };
-
-      function setupFirestoreListeners() {
-        const userId = window.state.userId;
-
-        // Mandatory paths according to System Rules
-        const walletsRef = collection(
-          db,
-          'artifacts',
-          appId,
-          'users',
-          userId,
-          'wallets'
-        );
-        const transactionsRef = collection(
-          db,
-          'artifacts',
-          appId,
-          'users',
-          userId,
-          'transactions'
-        );
-        const categoriesRef = collection(
-          db,
-          'artifacts',
-          appId,
-          'users',
-          userId,
-          'categories'
-        );
-
-        // Listen Wallets
-        onSnapshot(
-          walletsRef,
-          (snapshot) => {
-            const list = [];
-            snapshot.forEach((doc) => list.push({ id: doc.id, ...doc.data() }));
-            if (list.length === 0) {
-              // Initialize default wallets if empty
-              defaultWallets.forEach((w) => setDoc(doc(walletsRef, w.id), w));
-            } else {
-              window.state.wallets = list;
-              renderAll();
-            }
-          },
-          (err) => console.error('Wallets snapshot err', err)
-        );
-
-        // Listen Transactions
-        onSnapshot(
-          transactionsRef,
-          (snapshot) => {
-            const list = [];
-            snapshot.forEach((doc) => list.push({ id: doc.id, ...doc.data() }));
-            window.state.transactions = list;
-            renderAll();
-          },
-          (err) => console.error('Tx snapshot err', err)
-        );
-
-        // Listen Categories
-        onSnapshot(
-          categoriesRef,
-          (snapshot) => {
-            const list = [];
-            snapshot.forEach((doc) => list.push({ id: doc.id, ...doc.data() }));
-            if (list.length === 0) {
-              defaultCategories.forEach((c) =>
-                setDoc(doc(categoriesRef, c.id), c)
-              );
-            } else {
-              window.state.categories = list;
-              renderAll();
-            }
-          },
-          (err) => console.error('Categories snapshot err', err)
-        );
       }
 
-      function loadLocalDataFallback() {
+      function updateCloudStatusBadge(online, syncing = false) {
+        const dot = document.getElementById('cloudStatusDot');
+        const text = document.getElementById('cloudStatusText');
+
+        if (syncing) {
+          dot.className = 'w-1.5 h-1.5 rounded-full bg-amber-300 animate-ping mr-1';
+          text.textContent = 'Đồng bộ...';
+        } else if (online) {
+          dot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1';
+          text.textContent = window.config.authToken ? 'Cloud Synced' : 'Cloud Ready';
+        } else {
+          dot.className = 'w-1.5 h-1.5 rounded-full bg-rose-400 mr-1';
+          text.textContent = 'Offline Mode';
+        }
+      }
+
+
+      async function syncWithCloudBackend(manualTrigger = false) {
+        if (window.state.isSyncing) return;
+        window.state.isSyncing = true;
+        updateCloudStatusBadge(window.state.isOnline, true);
+
+        try {
+          // 1. Fetch Cloud Data
+          let remoteWallets = null;
+          let remoteTransactions = null;
+          let remoteCategories = null;
+
+          try {
+            const wRes = await apiFetch('/api/wallets');
+            remoteWallets = Array.isArray(wRes) ? wRes : wRes.data || wRes.wallets;
+          } catch (e) {
+            console.log('No /api/wallets endpoint response, fallbacking local');
+          }
+
+          try {
+            const tRes = await apiFetch('/api/transactions');
+            remoteTransactions = Array.isArray(tRes) ? tRes : tRes.data || tRes.transactions;
+          } catch (e) {
+            console.log('No /api/transactions response');
+          }
+
+          try {
+            const cRes = await apiFetch('/api/categories');
+            remoteCategories = Array.isArray(cRes) ? cRes : cRes.data || cRes.categories;
+          } catch (e) {
+            console.log('No /api/categories response');
+          }
+
+          // If remote endpoints returned valid arrays, merge or replace local
+          if (Array.isArray(remoteWallets) && remoteWallets.length > 0) {
+            window.state.wallets = remoteWallets;
+          } else if (window.state.wallets.length > 0) {
+            // Push local wallets to Cloud
+            try {
+              await apiFetch('/api/sync', {
+                method: 'POST',
+                body: JSON.stringify({
+                  wallets: window.state.wallets,
+                  transactions: window.state.transactions,
+                  categories: window.state.categories,
+                }),
+              });
+            } catch (pushErr) {
+              console.warn('Batch push sync skipped', pushErr);
+            }
+          }
+
+          if (Array.isArray(remoteTransactions)) {
+            window.state.transactions = remoteTransactions;
+          }
+          if (Array.isArray(remoteCategories) && remoteCategories.length > 0) {
+            window.state.categories = remoteCategories;
+          }
+
+          window.state.isOnline = true;
+          updateCloudStatusBadge(true);
+          if (manualTrigger) showToast('Đồng bộ dữ liệu Cloud hoàn tất!');
+        } catch (err) {
+          console.warn('Cloud Sync warn:', err);
+          window.state.isOnline = false;
+          updateCloudStatusBadge(false);
+          if (manualTrigger) showToast('Đồng bộ không thành công. Đã lưu bản ghi tạm Offline.');
+        } finally {
+          window.state.isSyncing = false;
+          saveLocalData();
+          renderAll();
+        }
+      }
+
+
+      function loadLocalData() {
         window.state.wallets =
           JSON.parse(localStorage.getItem('fin_wallets')) || defaultWallets;
         window.state.transactions =
           JSON.parse(localStorage.getItem('fin_transactions')) || [];
         window.state.categories =
-          JSON.parse(localStorage.getItem('fin_categories')) ||
-          defaultCategories;
-        renderAll();
+          JSON.parse(localStorage.getItem('fin_categories')) || defaultCategories;
+
+        updateUserUI();
       }
 
-      function saveLocalFallback() {
-        if (!window.state.currentUser || window.state.currentUser.isAnonymous) {
-          localStorage.setItem(
-            'fin_wallets',
-            JSON.stringify(window.state.wallets)
-          );
-          localStorage.setItem(
-            'fin_transactions',
-            JSON.stringify(window.state.transactions)
-          );
-          localStorage.setItem(
-            'fin_categories',
-            JSON.stringify(window.state.categories)
-          );
+      function saveLocalData() {
+        localStorage.setItem('fin_wallets', JSON.stringify(window.state.wallets));
+        localStorage.setItem('fin_transactions', JSON.stringify(window.state.transactions));
+        localStorage.setItem('fin_categories', JSON.stringify(window.state.categories));
+        if (window.config.user) {
+          localStorage.setItem('cashflow_user', JSON.stringify(window.config.user));
         }
       }
 
+      function updateUserUI() {
+        const user = window.config.user;
+        const avatar = document.getElementById('userAvatar');
+        const nameEl = document.getElementById('userName');
+        const cloudBtnText = document.getElementById('cloudAuthBtnText');
+        const cloudIcon = document.getElementById('cloudAuthIcon');
+        const settingsName = document.getElementById('settingsUserName');
+        const settingsEmail = document.getElementById('settingsUserEmail');
+        const settingsAvatar = document.getElementById('settingsUserAvatar');
+
+        if (user) {
+          const displayName = user.name || user.displayName || user.email || 'Người dùng Cloud';
+          avatar.src =
+            user.avatar ||
+            `https://placehold.co/100x100/10b981/ffffff?text=${encodeURIComponent(displayName.substring(0, 2).toUpperCase())}`;
+          settingsAvatar.src = avatar.src;
+          nameEl.textContent = displayName;
+          settingsName.textContent = displayName;
+          settingsEmail.textContent = user.email || 'Đã kết nối Cloud Backend';
+          cloudBtnText.textContent = 'Tài khoản Cloud';
+          cloudIcon.className = 'fas fa-user-check text-emerald-600';
+          document.getElementById('btnLogoutCloud').classList.remove('hidden');
+        } else {
+          avatar.src = `https://placehold.co/100x100/10b981/ffffff?text=Kh%C3%A1ch`;
+          settingsAvatar.src = avatar.src;
+          nameEl.textContent = 'Khách (Nội bộ)';
+          settingsName.textContent = 'Khách (Offline/Guest)';
+          settingsEmail.textContent = 'Dữ liệu lưu tại trình duyệt này';
+          cloudBtnText.textContent = 'Đăng nhập Cloud';
+          cloudIcon.className = 'fas fa-cloud-upload-alt text-emerald-600';
+          document.getElementById('btnLogoutCloud').classList.add('hidden');
+        }
+      }
+
+
+      window.openCloudAuthModal = function () {
+        document.getElementById('cloudAuthModal').classList.remove('hidden');
+      };
+
+      window.closeCloudAuthModal = function () {
+        document.getElementById('cloudAuthModal').classList.add('hidden');
+      };
+
+      window.switchAuthTab = function (mode) {
+        window.state.authMode = mode;
+        const tabLogin = document.getElementById('tabAuthLogin');
+        const tabReg = document.getElementById('tabAuthRegister');
+        const nameField = document.getElementById('authNameField');
+        const title = document.getElementById('cloudAuthTitle');
+
+        if (mode === 'register') {
+          tabReg.className = 'py-1.5 rounded-lg bg-white text-emerald-700 shadow transition';
+          tabLogin.className = 'py-1.5 rounded-lg text-slate-600 transition';
+          nameField.classList.remove('hidden');
+          title.textContent = 'Tạo Tài Khoản Cloud Mới';
+        } else {
+          tabLogin.className = 'py-1.5 rounded-lg bg-white text-emerald-700 shadow transition';
+          tabReg.className = 'py-1.5 rounded-lg text-slate-600 transition';
+          nameField.classList.add('hidden');
+          title.textContent = 'Đăng Nhập Cloud Backend';
+        }
+      };
+
+      window.handleCloudAuthSubmit = async function (event) {
+        event.preventDefault();
+        const email = document.getElementById('authEmail').value.trim();
+        const password = document.getElementById('authPassword').value;
+        const name = document.getElementById('authName').value.trim();
+        const btn = document.getElementById('btnAuthSubmit');
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Đang xử lý...';
+
+        try {
+          const endpoint = window.state.authMode === 'register' ? '/api/auth/register' : '/api/auth/login';
+          const payload = window.state.authMode === 'register' ? { name, email, password } : { email, password };
+
+          const res = await apiFetch(endpoint, {
+            method: 'POST',
+            body: JSON.stringify(payload),
+          });
+
+          const token = res.token || res.accessToken || (res.data && res.data.token);
+          const userData = res.user || (res.data && res.data.user) || { email, name: name || email };
+
+          if (token) {
+            window.config.authToken = token;
+            localStorage.setItem('cashflow_auth_token', token);
+          }
+
+          window.config.user = userData;
+          saveLocalData();
+          updateUserUI();
+          closeCloudAuthModal();
+          showToast(`Thành công! Chào mừng ${userData.name || userData.email}`);
+
+          // Trigger full sync
+          syncWithCloudBackend(true);
+        } catch (err) {
+          showToast(`Lỗi xác thực: ${err.message}`);
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = 'Xác nhận';
+        }
+      };
+
+      window.logoutCloudAccount = function () {
+        window.config.authToken = null;
+        window.config.user = null;
+        localStorage.removeItem('cashflow_auth_token');
+        localStorage.removeItem('cashflow_user');
+        updateUserUI();
+        closeCloudAuthModal();
+        showToast('Đã đăng xuất khỏi Cloud Account');
+      };
+
+
       function calculateWalletBalances() {
-        // Map wallet initial balance + transaction changes
         const walletBalances = {};
         window.state.wallets.forEach((w) => {
           walletBalances[w.id] = Number(w.initialBalance || 0);
@@ -1312,15 +1421,9 @@
 
         window.state.transactions.forEach((tx) => {
           const amount = Number(tx.amount || 0);
-          if (
-            tx.type === 'expense' &&
-            walletBalances[tx.walletId] !== undefined
-          ) {
+          if (tx.type === 'expense' && walletBalances[tx.walletId] !== undefined) {
             walletBalances[tx.walletId] -= amount;
-          } else if (
-            tx.type === 'income' &&
-            walletBalances[tx.walletId] !== undefined
-          ) {
+          } else if (tx.type === 'income' && walletBalances[tx.walletId] !== undefined) {
             walletBalances[tx.walletId] += amount;
           } else if (tx.type === 'transfer') {
             if (walletBalances[tx.sourceWalletId] !== undefined)
@@ -1343,7 +1446,6 @@
         return total;
       }
 
-      // Format money display helper
       window.formatMoney = function (amount, currency = 'VND') {
         if (window.state.isPrivacyHidden) return '•••••• ₫';
         const val = Number(amount || 0);
@@ -1366,11 +1468,10 @@
         const balances = calculateWalletBalances();
         const totalAssets = calculateTotalAssets(balances);
 
-        // Render Total Assets
-        document.getElementById('totalAssetsDisplay').textContent =
-          formatMoney(totalAssets);
+        // Display Total Assets
+        document.getElementById('totalAssetsDisplay').textContent = formatMoney(totalAssets);
 
-        // Monthly stats
+        // Monthly stats calculation
         const now = new Date();
         const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
@@ -1384,25 +1485,21 @@
           }
         });
 
-        document.getElementById('monthIncomeDisplay').textContent =
-          formatMoney(monthInc);
-        document.getElementById('monthExpenseDisplay').textContent =
-          formatMoney(monthExp);
+        document.getElementById('monthIncomeDisplay').textContent = formatMoney(monthInc);
+        document.getElementById('monthExpenseDisplay').textContent = formatMoney(monthExp);
 
         renderTransactions();
         renderWallets(balances);
         populateFormSelects();
         renderSettingsCategoryList();
         if (window.state.activeTab === 'stats') renderStatsCharts();
-        saveLocalFallback();
+        saveLocalData();
       }
 
-      // Render Transactions Grouped by Date
+
       window.renderTransactions = function () {
         const container = document.getElementById('transactionListContainer');
-        const searchKeyword = (
-          document.getElementById('searchInput').value || ''
-        )
+        const searchKeyword = (document.getElementById('searchInput').value || '')
           .toLowerCase()
           .trim();
         const filterMonth = document.getElementById('filterMonth').value;
@@ -1414,12 +1511,10 @@
           const matchKeyword =
             !searchKeyword ||
             (tx.note && tx.note.toLowerCase().includes(searchKeyword)) ||
-            (tx.categoryName &&
-              tx.categoryName.toLowerCase().includes(searchKeyword)) ||
+            (tx.categoryName && tx.categoryName.toLowerCase().includes(searchKeyword)) ||
             (tx.amount && String(tx.amount).includes(searchKeyword));
 
-          const matchMonth =
-            !filterMonth || (tx.date && tx.date.startsWith(filterMonth));
+          const matchMonth = !filterMonth || (tx.date && tx.date.startsWith(filterMonth));
           const matchCat = !filterCat || tx.categoryId === filterCat;
           const matchWal =
             !filterWal ||
@@ -1433,16 +1528,15 @@
         // Sort by date descending
         filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        document.getElementById('transactionCountBadge').textContent =
-          `${filtered.length} giao dịch`;
+        document.getElementById('transactionCountBadge').textContent = `${filtered.length} giao dịch`;
 
         if (filtered.length === 0) {
           container.innerHTML = `
-                    <div class="text-center py-8 text-slate-400 space-y-2 bg-white rounded-2xl border border-slate-100">
-                        <i class="fas fa-receipt text-3xl text-slate-300"></i>
-                        <p class="text-xs">Không tìm thấy giao dịch nào</p>
-                    </div>
-                `;
+            <div class="text-center py-8 text-slate-400 space-y-2 bg-white rounded-2xl border border-slate-100">
+                <i class="fas fa-receipt text-3xl text-slate-300"></i>
+                <p class="text-xs">Không tìm thấy giao dịch nào</p>
+            </div>
+          `;
           return;
         }
 
@@ -1456,7 +1550,6 @@
 
         let html = '';
         for (const [date, txs] of Object.entries(groups)) {
-          // Calculate day total
           let dayIncome = 0;
           let dayExpense = 0;
           txs.forEach((t) => {
@@ -1467,19 +1560,19 @@
           const formattedDate = formatDateHeader(date);
 
           html += `
-                    <div class="bg-white rounded-2xl p-3 shadow-sm border border-slate-100 space-y-2">
-                        <div class="flex justify-between items-center text-[11px] pb-1 border-b border-slate-100 text-slate-500 font-medium">
-                            <span class="font-bold text-slate-700">${formattedDate}</span>
-                            <div class="space-x-2">
-                                ${dayIncome > 0 ? `<span class="text-emerald-600 font-semibold">+${formatMoney(dayIncome)}</span>` : ''}
-                                ${dayExpense > 0 ? `<span class="text-rose-500 font-semibold">-${formatMoney(dayExpense)}</span>` : ''}
-                            </div>
-                        </div>
-                        <div class="space-y-1">
-                            ${txs.map((tx) => renderTxItemHtml(tx)).join('')}
-                        </div>
+            <div class="bg-white rounded-2xl p-3 shadow-sm border border-slate-100 space-y-2">
+                <div class="flex justify-between items-center text-[11px] pb-1 border-b border-slate-100 text-slate-500 font-medium">
+                    <span class="font-bold text-slate-700">${formattedDate}</span>
+                    <div class="space-x-2">
+                        ${dayIncome > 0 ? `<span class="text-emerald-600 font-semibold">+${formatMoney(dayIncome)}</span>` : ''}
+                        ${dayExpense > 0 ? `<span class="text-rose-500 font-semibold">-${formatMoney(dayExpense)}</span>` : ''}
                     </div>
-                `;
+                </div>
+                <div class="space-y-1">
+                    ${txs.map((tx) => renderTxItemHtml(tx)).join('')}
+                </div>
+            </div>
+          `;
         }
 
         container.innerHTML = html;
@@ -1516,14 +1609,12 @@
           colorClass = 'text-rose-500 font-bold';
           prefix = '-';
           icon = tx.categoryIcon || '💸';
-          subtitle +=
-            (subtitle ? ' • ' : '') + (walletMap[tx.walletId] || 'Ví');
+          subtitle += (subtitle ? ' • ' : '') + (walletMap[tx.walletId] || 'Ví');
         } else if (tx.type === 'income') {
           colorClass = 'text-emerald-600 font-bold';
           prefix = '+';
           icon = tx.categoryIcon || '💵';
-          subtitle +=
-            (subtitle ? ' • ' : '') + (walletMap[tx.walletId] || 'Ví');
+          subtitle += (subtitle ? ' • ' : '') + (walletMap[tx.walletId] || 'Ví');
         } else if (tx.type === 'transfer') {
           colorClass = 'text-slate-600 font-bold';
           icon = '🔄';
@@ -1532,22 +1623,23 @@
         }
 
         return `
-                <div onclick="openTxDetailModal('${tx.id}')" class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 cursor-pointer transition">
-                    <div class="flex items-center space-x-3">
-                        <span class="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-lg shadow-sm">
-                            ${icon}
-                        </span>
-                        <div>
-                            <p class="text-xs font-bold text-slate-800">${title}</p>
-                            <p class="text-[10px] text-slate-400 truncate max-w-[170px]">${subtitle}</p>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <span class="text-xs ${colorClass}">${prefix}${formatMoney(tx.amount)}</span>
-                    </div>
-                </div>
-            `;
+          <div onclick="openTxDetailModal('${tx.id}')" class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 cursor-pointer transition">
+              <div class="flex items-center space-x-3">
+                  <span class="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-lg shadow-sm">
+                      ${icon}
+                  </span>
+                  <div>
+                      <p class="text-xs font-bold text-slate-800">${title}</p>
+                      <p class="text-[10px] text-slate-400 truncate max-w-[170px]">${subtitle}</p>
+                  </div>
+              </div>
+              <div class="text-right">
+                  <span class="text-xs ${colorClass}">${prefix}${formatMoney(tx.amount)}</span>
+              </div>
+          </div>
+        `;
       }
+
 
       function renderWallets(balances) {
         const incList = document.getElementById('includedWalletsList');
@@ -1557,35 +1649,31 @@
         const excluded = window.state.wallets.filter((w) => !w.includeInTotal);
 
         incList.innerHTML = included.length
-          ? included
-              .map((w) => renderWalletCardHtml(w, balances[w.id]))
-              .join('')
+          ? included.map((w) => renderWalletCardHtml(w, balances[w.id])).join('')
           : '<p class="text-xs text-slate-400 italic px-1">Chưa có ví trong nhóm này</p>';
         excList.innerHTML = excluded.length
-          ? excluded
-              .map((w) => renderWalletCardHtml(w, balances[w.id]))
-              .join('')
+          ? excluded.map((w) => renderWalletCardHtml(w, balances[w.id])).join('')
           : '<p class="text-xs text-slate-400 italic px-1">Chưa có ví trong nhóm này</p>';
       }
 
       function renderWalletCardHtml(w, balance) {
         return `
-                <div onclick="showWalletDetail('${w.id}')" class="bg-white rounded-2xl p-3 shadow-sm border border-slate-100 flex items-center justify-between hover:border-emerald-300 transition cursor-pointer">
-                    <div class="flex items-center space-x-3">
-                        <span class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-xl shadow-sm">
-                            ${w.icon || '👛'}
-                        </span>
-                        <div>
-                            <h4 class="text-xs font-bold text-slate-800">${w.name}</h4>
-                            <span class="text-[10px] text-slate-400 font-medium">Tiền tệ: ${w.currency || 'VND'}</span>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-xs font-extrabold text-emerald-600">${formatMoney(balance, w.currency)}</p>
-                        <span class="text-[10px] text-slate-400"><i class="fas fa-chevron-right text-[8px] ml-1"></i></span>
-                    </div>
-                </div>
-            `;
+          <div onclick="showWalletDetail('${w.id}')" class="bg-white rounded-2xl p-3 shadow-sm border border-slate-100 flex items-center justify-between hover:border-emerald-300 transition cursor-pointer">
+              <div class="flex items-center space-x-3">
+                  <span class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-xl shadow-sm">
+                      ${w.icon || '👛'}
+                  </span>
+                  <div>
+                      <h4 class="text-xs font-bold text-slate-800">${w.name}</h4>
+                      <span class="text-[10px] text-slate-400 font-medium">Tiền tệ: ${w.currency || 'VND'}</span>
+                  </div>
+              </div>
+              <div class="text-right">
+                  <p class="text-xs font-extrabold text-emerald-600">${formatMoney(balance, w.currency)}</p>
+                  <span class="text-[10px] text-slate-400"><i class="fas fa-chevron-right text-[8px] ml-1"></i></span>
+              </div>
+          </div>
+        `;
       }
 
       window.showWalletDetail = function (walletId) {
@@ -1596,15 +1684,11 @@
         const balances = calculateWalletBalances();
 
         document.getElementById('detailWalletName').textContent = wallet.name;
-        document.getElementById('detailWalletIcon').textContent =
-          wallet.icon || '👛';
-        document.getElementById('detailWalletBalance').textContent =
-          formatMoney(balances[walletId], wallet.currency);
+        document.getElementById('detailWalletIcon').textContent = wallet.icon || '👛';
+        document.getElementById('detailWalletBalance').textContent = formatMoney(balances[walletId], wallet.currency);
         document.getElementById('walletDetailCard').classList.remove('hidden');
-        document.getElementById('btnEditCurrentWallet').onclick = () =>
-          openWalletModal(walletId);
+        document.getElementById('btnEditCurrentWallet').onclick = () => openWalletModal(walletId);
 
-        // Calculate weekly cashflow for this wallet
         const txs = window.state.transactions.filter(
           (t) =>
             t.walletId === walletId ||
@@ -1612,7 +1696,6 @@
             t.targetWalletId === walletId
         );
 
-        // Build last 7 days chart data
         const labels = [];
         const dataIncome = [];
         const dataExpense = [];
@@ -1628,10 +1711,8 @@
 
           txs.forEach((t) => {
             if (t.date === dateStr) {
-              if (t.type === 'income' && t.walletId === walletId)
-                dayInc += Number(t.amount);
-              if (t.type === 'expense' && t.walletId === walletId)
-                dayExp += Number(t.amount);
+              if (t.type === 'income' && t.walletId === walletId) dayInc += Number(t.amount);
+              if (t.type === 'expense' && t.walletId === walletId) dayExp += Number(t.amount);
               if (t.type === 'transfer') {
                 if (t.targetWalletId === walletId) dayInc += Number(t.amount);
                 if (t.sourceWalletId === walletId) dayExp += Number(t.amount);
@@ -1643,9 +1724,7 @@
           dataExpense.push(dayExp);
         }
 
-        const ctx = document
-          .getElementById('walletCashflowChart')
-          .getContext('2d');
+        const ctx = document.getElementById('walletCashflowChart').getContext('2d');
         if (walletChartInstance) walletChartInstance.destroy();
 
         walletChartInstance = new Chart(ctx, {
@@ -1653,26 +1732,14 @@
           data: {
             labels: labels,
             datasets: [
-              {
-                label: 'Thu',
-                data: dataIncome,
-                backgroundColor: '#10b981',
-                borderRadius: 4,
-              },
-              {
-                label: 'Chi',
-                data: dataExpense,
-                backgroundColor: '#ef4444',
-                borderRadius: 4,
-              },
+              { label: 'Thu', data: dataIncome, backgroundColor: '#10b981', borderRadius: 4 },
+              { label: 'Chi', data: dataExpense, backgroundColor: '#ef4444', borderRadius: 4 },
             ],
           },
           options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-              legend: { labels: { boxWidth: 10, font: { size: 10 } } },
-            },
+            plugins: { legend: { labels: { boxWidth: 10, font: { size: 10 } } } },
             scales: {
               x: { grid: { display: false }, ticks: { font: { size: 9 } } },
               y: { ticks: { font: { size: 9 } } },
@@ -1684,6 +1751,7 @@
       window.closeWalletDetail = function () {
         document.getElementById('walletDetailCard').classList.add('hidden');
       };
+
 
       window.renderStatsCharts = function () {
         const period = document.getElementById('statsPeriod').value;
@@ -1701,14 +1769,12 @@
           endDate = new Date(now.getFullYear(), 11, 31);
         }
 
-        // Filter transactions within range
         const filteredTxs = window.state.transactions.filter((t) => {
           if (!t.date) return false;
           const d = new Date(t.date);
           return d >= startDate && d <= endDate;
         });
 
-        // Calculate overall income vs expense
         let totalInc = 0;
         let totalExp = 0;
         const categoryTotals = {};
@@ -1725,9 +1791,7 @@
         });
 
         // 1. Bar Chart Income vs Expense
-        const ctxIncExp = document
-          .getElementById('incomeExpenseChart')
-          .getContext('2d');
+        const ctxIncExp = document.getElementById('incomeExpenseChart').getContext('2d');
         if (incExpChartInstance) incExpChartInstance.destroy();
 
         incExpChartInstance = new Chart(ctxIncExp, {
@@ -1751,9 +1815,7 @@
         });
 
         // 2. Donut Chart Categories
-        const ctxDonut = document
-          .getElementById('categoryDonutChart')
-          .getContext('2d');
+        const ctxDonut = document.getElementById('categoryDonutChart').getContext('2d');
         if (donutChartInstance) donutChartInstance.destroy();
 
         const catLabels = Object.keys(categoryTotals);
@@ -1794,10 +1856,7 @@
           },
         });
 
-        // Render category breakdown list with percentages
-        const breakdownContainer = document.getElementById(
-          'categoryBreakdownList'
-        );
+        const breakdownContainer = document.getElementById('categoryBreakdownList');
         if (!catData.length || totalExp === 0) {
           breakdownContainer.innerHTML =
             '<p class="text-slate-400 text-center italic py-2">Chưa có khoản chi tiêu trong khoảng thời gian này</p>';
@@ -1807,21 +1866,22 @@
             const amt = categoryTotals[label];
             const pct = ((amt / totalExp) * 100).toFixed(1);
             listHtml += `
-                        <div class="flex items-center justify-between py-1 border-b border-slate-50">
-                            <div class="flex items-center space-x-2">
-                                <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${colors[idx % colors.length]}"></span>
-                                <span class="font-medium text-slate-700">${label}</span>
-                            </div>
-                            <div class="text-right">
-                                <span class="font-bold text-slate-800 mr-2">${formatMoney(amt)}</span>
-                                <span class="text-[10px] text-slate-400">(${pct}%)</span>
-                            </div>
-                        </div>
-                    `;
+              <div class="flex items-center justify-between py-1 border-b border-slate-50">
+                  <div class="flex items-center space-x-2">
+                      <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${colors[idx % colors.length]}"></span>
+                      <span class="font-medium text-slate-700">${label}</span>
+                  </div>
+                  <div class="text-right">
+                      <span class="font-bold text-slate-800 mr-2">${formatMoney(amt)}</span>
+                      <span class="text-[10px] text-slate-400">(${pct}%)</span>
+                  </div>
+              </div>
+            `;
           });
           breakdownContainer.innerHTML = listHtml;
         }
       };
+
 
       function populateFormSelects() {
         const txCatSelect = document.getElementById('txCategory');
@@ -1831,44 +1891,27 @@
         const txSourceSelect = document.getElementById('txSourceWallet');
         const txTargetSelect = document.getElementById('txTargetWallet');
 
-        // Categories options
         const currentType = window.state.currentTxType;
-        const filteredCats = window.state.categories.filter(
-          (c) => c.type === currentType
-        );
+        const filteredCats = window.state.categories.filter((c) => c.type === currentType);
 
         txCatSelect.innerHTML = filteredCats
-          .map(
-            (c) => `
-                <option value="${c.id}">${c.icon || '🏷️'} ${c.name}</option>
-            `
-          )
+          .map((c) => `<option value="${c.id}">${c.icon || '🏷️'} ${c.name}</option>`)
           .join('');
 
         filterCatSelect.innerHTML =
           '<option value="">Tất cả danh mục</option>' +
           window.state.categories
-            .map(
-              (c) => `
-                <option value="${c.id}">${c.icon || '🏷️'} ${c.name}</option>
-            `
-            )
+            .map((c) => `<option value="${c.id}">${c.icon || '🏷️'} ${c.name}</option>`)
             .join('');
 
-        // Wallets options
         const walletOptions = window.state.wallets
-          .map(
-            (w) => `
-                <option value="${w.id}">${w.icon || '👛'} ${w.name}</option>
-            `
-          )
+          .map((w) => `<option value="${w.id}">${w.icon || '👛'} ${w.name}</option>`)
           .join('');
 
         txWalSelect.innerHTML = walletOptions;
         txSourceSelect.innerHTML = walletOptions;
         txTargetSelect.innerHTML = walletOptions;
-        filterWalSelect.innerHTML =
-          '<option value="">Tất cả các ví</option>' + walletOptions;
+        filterWalSelect.innerHTML = '<option value="">Tất cả các ví</option>' + walletOptions;
       }
 
       window.setTxType = function (type) {
@@ -1892,18 +1935,15 @@
 
         if (type === 'transfer') {
           document.getElementById('standardTxFields').classList.add('hidden');
-          document
-            .getElementById('transferTxFields')
-            .classList.remove('hidden');
+          document.getElementById('transferTxFields').classList.remove('hidden');
         } else {
-          document
-            .getElementById('standardTxFields')
-            .classList.remove('hidden');
+          document.getElementById('standardTxFields').classList.remove('hidden');
           document.getElementById('transferTxFields').classList.add('hidden');
         }
 
         populateFormSelects();
       };
+
 
       window.saveTransaction = async function (event) {
         event.preventDefault();
@@ -1911,8 +1951,7 @@
         const type = window.state.currentTxType;
         const amount = Number(document.getElementById('txAmount').value);
         const date =
-          document.getElementById('txDate').value ||
-          new Date().toISOString().split('T')[0];
+          document.getElementById('txDate').value || new Date().toISOString().split('T')[0];
         const note = document.getElementById('txNote').value;
 
         if (!amount || amount <= 0) {
@@ -1923,10 +1962,8 @@
         let txData = { id, type, amount, date, note };
 
         if (type === 'transfer') {
-          const sourceWalletId =
-            document.getElementById('txSourceWallet').value;
-          const targetWalletId =
-            document.getElementById('txTargetWallet').value;
+          const sourceWalletId = document.getElementById('txSourceWallet').value;
+          const targetWalletId = document.getElementById('txTargetWallet').value;
           if (sourceWalletId === targetWalletId) {
             showToast('Ví nguồn và ví đích phải khác nhau');
             return;
@@ -1946,22 +1983,21 @@
           };
         }
 
-        // Sync with Firestore if logged in, else local
-        if (window.state.currentUser && !window.state.currentUser.isAnonymous) {
-          const ref = doc(
-            db,
-            'artifacts',
-            appId,
-            'users',
-            window.state.userId,
-            'transactions',
-            id
-          );
-          await setDoc(ref, txData);
-        } else {
-          const idx = window.state.transactions.findIndex((t) => t.id === id);
-          if (idx >= 0) window.state.transactions[idx] = txData;
-          else window.state.transactions.push(txData);
+        // Save locally first
+        const idx = window.state.transactions.findIndex((t) => t.id === id);
+        if (idx >= 0) window.state.transactions[idx] = txData;
+        else window.state.transactions.push(txData);
+
+        // Send to Cloud API if online
+        if (window.state.isOnline) {
+          try {
+            await apiFetch('/api/transactions', {
+              method: idx >= 0 ? 'PUT' : 'POST',
+              body: JSON.stringify(txData),
+            });
+          } catch (e) {
+            console.warn('Post transaction cloud fail, saved locally', e);
+          }
         }
 
         closeTransactionModal();
@@ -1971,48 +2007,35 @@
 
       window.saveWallet = async function (event) {
         event.preventDefault();
-        const id =
-          document.getElementById('walletId').value || 'wal_' + Date.now();
+        const id = document.getElementById('walletId').value || 'wal_' + Date.now();
         const name = document.getElementById('walletName').value.trim();
         const icon = document.getElementById('walletIcon').value.trim() || '👛';
         const currency = document.getElementById('walletCurrency').value;
-        const initialBalance = Number(
-          document.getElementById('walletInitialBalance').value || 0
-        );
-        const includeInTotal =
-          document.getElementById('walletIncludeTotal').checked;
+        const initialBalance = Number(document.getElementById('walletInitialBalance').value || 0);
+        const includeInTotal = document.getElementById('walletIncludeTotal').checked;
 
         if (!name) return;
 
-        const walletData = {
-          id,
-          name,
-          icon,
-          currency,
-          initialBalance,
-          includeInTotal,
-        };
+        const walletData = { id, name, icon, currency, initialBalance, includeInTotal };
 
-        if (window.state.currentUser && !window.state.currentUser.isAnonymous) {
-          const ref = doc(
-            db,
-            'artifacts',
-            appId,
-            'users',
-            window.state.userId,
-            'wallets',
-            id
-          );
-          await setDoc(ref, walletData);
-        } else {
-          const idx = window.state.wallets.findIndex((w) => w.id === id);
-          if (idx >= 0) window.state.wallets[idx] = walletData;
-          else window.state.wallets.push(walletData);
+        const idx = window.state.wallets.findIndex((w) => w.id === id);
+        if (idx >= 0) window.state.wallets[idx] = walletData;
+        else window.state.wallets.push(walletData);
+
+        if (window.state.isOnline) {
+          try {
+            await apiFetch('/api/wallets', {
+              method: idx >= 0 ? 'PUT' : 'POST',
+              body: JSON.stringify(walletData),
+            });
+          } catch (e) {
+            console.warn('Cloud wallet save skipped', e);
+          }
         }
 
         closeWalletModal();
         renderAll();
-        showToast('Đã lưu ví tiền');
+        showToast('Đã lưu thông tin ví tiền!');
       };
 
       window.saveCategory = async function (event) {
@@ -2025,75 +2048,62 @@
         if (!name) return;
 
         const catData = { id, type, name, icon };
+        window.state.categories.push(catData);
 
-        if (window.state.currentUser && !window.state.currentUser.isAnonymous) {
-          const ref = doc(
-            db,
-            'artifacts',
-            appId,
-            'users',
-            window.state.userId,
-            'categories',
-            id
-          );
-          await setDoc(ref, catData);
-        } else {
-          window.state.categories.push(catData);
+        if (window.state.isOnline) {
+          try {
+            await apiFetch('/api/categories', {
+              method: 'POST',
+              body: JSON.stringify(catData),
+            });
+          } catch (e) {
+            console.warn('Cloud category save skipped', e);
+          }
         }
 
         closeCategoryModal();
         renderAll();
-        showToast('Thêm danh mục mới thành công');
+        showToast('Thêm danh mục thành công!');
       };
 
       function renderSettingsCategoryList() {
         const listContainer = document.getElementById('settingsCategoryList');
         if (!window.state.categories.length) {
-          listContainer.innerHTML =
-            '<p class="text-slate-400 text-center py-2">Chưa có danh mục nào</p>';
+          listContainer.innerHTML = '<p class="text-slate-400 text-center py-2">Chưa có danh mục nào</p>';
           return;
         }
 
         listContainer.innerHTML = window.state.categories
           .map(
             (c) => `
-                <div class="flex items-center justify-between p-2 bg-slate-50 rounded-xl">
-                    <div class="flex items-center space-x-2">
-                        <span class="text-base">${c.icon || '🏷️'}</span>
-                        <span class="font-bold text-slate-800">${c.name}</span>
-                        <span class="text-[9px] px-1.5 py-0.5 rounded-full ${c.type === 'expense' ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'}">
-                            ${c.type === 'expense' ? 'Chi' : 'Thu'}
-                        </span>
-                    </div>
-                    <button onclick="deleteCategory('${c.id}')" class="text-slate-400 hover:text-rose-500 p-1">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </div>
+              <div class="flex items-center justify-between p-2 bg-slate-50 rounded-xl">
+                  <div class="flex items-center space-x-2">
+                      <span class="text-base">${c.icon || '🏷️'}</span>
+                      <span class="font-bold text-slate-800">${c.name}</span>
+                      <span class="text-[9px] px-1.5 py-0.5 rounded-full ${c.type === 'expense' ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'}">
+                          ${c.type === 'expense' ? 'Chi' : 'Thu'}
+                      </span>
+                  </div>
+                  <button onclick="deleteCategory('${c.id}')" class="text-slate-400 hover:text-rose-500 p-1">
+                      <i class="fas fa-trash-alt"></i>
+                  </button>
+              </div>
             `
           )
           .join('');
       }
 
       window.deleteCategory = async function (id) {
-        if (window.state.currentUser && !window.state.currentUser.isAnonymous) {
-          await deleteDoc(
-            doc(
-              db,
-              'artifacts',
-              appId,
-              'users',
-              window.state.userId,
-              'categories',
-              id
-            )
-          );
-        } else {
-          window.state.categories = window.state.categories.filter(
-            (c) => c.id !== id
-          );
+        window.state.categories = window.state.categories.filter((c) => c.id !== id);
+        if (window.state.isOnline) {
+          try {
+            await apiFetch(`/api/categories/${id}`, { method: 'DELETE' });
+          } catch (e) {
+            console.warn('Cloud category delete fail', e);
+          }
         }
         renderAll();
-        showToast('Đã xóa danh mục');
+        showToast('Đã xóa danh mục!');
       };
 
       window.exportToExcel = function () {
@@ -2116,8 +2126,7 @@
                 : 'Chuyển tiền',
           'Số Tiền (VND)': tx.amount,
           'Danh Mục':
-            tx.categoryName ||
-            (tx.type === 'transfer' ? 'Chuyển tiền nội bộ' : 'Khác'),
+            tx.categoryName || (tx.type === 'transfer' ? 'Chuyển tiền nội bộ' : 'Khác'),
           'Ví Tiền':
             tx.type === 'transfer'
               ? `${walletMap[tx.sourceWalletId] || 'Ví nguồn'} -> ${walletMap[tx.targetWalletId] || 'Ví đích'}`
@@ -2136,15 +2145,12 @@
         showToast('Đã tải xuống file Excel!');
       };
 
+
       window.switchTab = function (tabName) {
         window.state.activeTab = tabName;
         ['home', 'wallets', 'stats', 'settings'].forEach((t) => {
-          const view = document.getElementById(
-            'view' + t.charAt(0).toUpperCase() + t.slice(1)
-          );
-          const nav = document.getElementById(
-            'nav' + t.charAt(0).toUpperCase() + t.slice(1)
-          );
+          const view = document.getElementById('view' + t.charAt(0).toUpperCase() + t.slice(1));
+          const nav = document.getElementById('nav' + t.charAt(0).toUpperCase() + t.slice(1));
           if (t === tabName) {
             view.classList.remove('hidden');
             nav.className =
@@ -2161,33 +2167,27 @@
 
       window.openTransactionModal = function (editId = null) {
         document.getElementById('transactionForm').reset();
-        document.getElementById('txDate').value = new Date()
-          .toISOString()
-          .split('T')[0];
+        document.getElementById('txDate').value = new Date().toISOString().split('T')[0];
         document.getElementById('txId').value = editId || '';
 
         if (editId) {
           const tx = window.state.transactions.find((t) => t.id === editId);
           if (tx) {
-            document.getElementById('txModalTitle').textContent =
-              'Sửa giao dịch';
+            document.getElementById('txModalTitle').textContent = 'Sửa giao dịch';
             setTxType(tx.type);
             document.getElementById('txAmount').value = tx.amount;
             document.getElementById('txDate').value = tx.date;
             document.getElementById('txNote').value = tx.note || '';
             if (tx.type === 'transfer') {
-              document.getElementById('txSourceWallet').value =
-                tx.sourceWalletId;
-              document.getElementById('txTargetWallet').value =
-                tx.targetWalletId;
+              document.getElementById('txSourceWallet').value = tx.sourceWalletId;
+              document.getElementById('txTargetWallet').value = tx.targetWalletId;
             } else {
               document.getElementById('txCategory').value = tx.categoryId;
               document.getElementById('txWallet').value = tx.walletId;
             }
           }
         } else {
-          document.getElementById('txModalTitle').textContent =
-            'Thêm giao dịch mới';
+          document.getElementById('txModalTitle').textContent = 'Thêm giao dịch mới';
           setTxType('expense');
         }
 
@@ -2205,20 +2205,15 @@
         if (editId) {
           const wallet = window.state.wallets.find((w) => w.id === editId);
           if (wallet) {
-            document.getElementById('walletModalTitle').textContent =
-              'Sửa Ví Tiền';
+            document.getElementById('walletModalTitle').textContent = 'Sửa Ví Tiền';
             document.getElementById('walletName').value = wallet.name;
             document.getElementById('walletIcon').value = wallet.icon || '👛';
-            document.getElementById('walletCurrency').value =
-              wallet.currency || 'VND';
-            document.getElementById('walletInitialBalance').value =
-              wallet.initialBalance || 0;
-            document.getElementById('walletIncludeTotal').checked =
-              wallet.includeInTotal !== false;
+            document.getElementById('walletCurrency').value = wallet.currency || 'VND';
+            document.getElementById('walletInitialBalance').value = wallet.initialBalance || 0;
+            document.getElementById('walletIncludeTotal').checked = wallet.includeInTotal !== false;
           }
         } else {
-          document.getElementById('walletModalTitle').textContent =
-            'Tạo Ví Tiền Mới';
+          document.getElementById('walletModalTitle').textContent = 'Tạo Ví Tiền Mới';
           document.getElementById('walletIncludeTotal').checked = true;
         }
 
@@ -2239,41 +2234,40 @@
 
         const detailContainer = document.getElementById('txDetailContent');
         detailContainer.innerHTML = `
-                <div class="text-center pb-2 border-b">
-                    <span class="text-3xl">${tx.categoryIcon || (tx.type === 'transfer' ? '🔄' : '💸')}</span>
-                    <h4 class="text-base font-bold text-slate-800 mt-1">${tx.categoryName || (tx.type === 'transfer' ? 'Chuyển tiền' : 'Giao dịch')}</h4>
-                    <p class="text-lg font-extrabold ${tx.type === 'expense' ? 'text-rose-500' : tx.type === 'income' ? 'text-emerald-600' : 'text-slate-700'}">
-                        ${formatMoney(tx.amount)}
-                    </p>
-                </div>
-                <div class="space-y-1.5 text-slate-600">
-                    <div class="flex justify-between">
-                        <span>Loại giao dịch:</span>
-                        <span class="font-semibold text-slate-800">${tx.type === 'expense' ? 'Chi tiêu' : tx.type === 'income' ? 'Thu nhập' : 'Chuyển tiền'}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Ngày thực hiện:</span>
-                        <span class="font-semibold text-slate-800">${tx.date}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Ví liên quan:</span>
-                        <span class="font-semibold text-slate-800">${tx.type === 'transfer' ? `${walletMap[tx.sourceWalletId]} ➔ ${walletMap[tx.targetWalletId]}` : walletMap[tx.walletId] || ''}</span>
-                    </div>
-                    ${
-                      tx.note
-                        ? `
-                        <div class="pt-1 border-t">
-                            <span class="block text-slate-400">Ghi chú:</span>
-                            <p class="font-medium text-slate-800 italic bg-slate-50 p-2 rounded-lg mt-0.5">${tx.note}</p>
-                        </div>
-                    `
-                        : ''
-                    }
-                </div>
-            `;
+          <div class="text-center pb-2 border-b">
+              <span class="text-3xl">${tx.categoryIcon || (tx.type === 'transfer' ? '🔄' : '💸')}</span>
+              <h4 class="text-base font-bold text-slate-800 mt-1">${tx.categoryName || (tx.type === 'transfer' ? 'Chuyển tiền' : 'Giao dịch')}</h4>
+              <p class="text-lg font-extrabold ${tx.type === 'expense' ? 'text-rose-500' : tx.type === 'income' ? 'text-emerald-600' : 'text-slate-700'}">
+                  ${formatMoney(tx.amount)}
+              </p>
+          </div>
+          <div class="space-y-1.5 text-slate-600">
+              <div class="flex justify-between">
+                  <span>Loại giao dịch:</span>
+                  <span class="font-semibold text-slate-800">${tx.type === 'expense' ? 'Chi tiêu' : tx.type === 'income' ? 'Thu nhập' : 'Chuyển tiền'}</span>
+              </div>
+              <div class="flex justify-between">
+                  <span>Ngày thực hiện:</span>
+                  <span class="font-semibold text-slate-800">${tx.date}</span>
+              </div>
+              <div class="flex justify-between">
+                  <span>Ví liên quan:</span>
+                  <span class="font-semibold text-slate-800">${tx.type === 'transfer' ? `${walletMap[tx.sourceWalletId]} ➔ ${walletMap[tx.targetWalletId]}` : walletMap[tx.walletId] || ''}</span>
+              </div>
+              ${
+                tx.note
+                  ? `
+                  <div class="pt-1 border-t">
+                      <span class="block text-slate-400">Ghi chú:</span>
+                      <p class="font-medium text-slate-800 italic bg-slate-50 p-2 rounded-lg mt-0.5">${tx.note}</p>
+                  </div>
+              `
+                  : ''
+              }
+          </div>
+        `;
 
-        document.getElementById('btnDeleteTx').onclick = () =>
-          deleteTransaction(txId);
+        document.getElementById('btnDeleteTx').onclick = () => deleteTransaction(txId);
         document.getElementById('btnEditTx').onclick = () => {
           closeTxDetailModal();
           openTransactionModal(txId);
@@ -2287,26 +2281,17 @@
       };
 
       async function deleteTransaction(txId) {
-        if (window.state.currentUser && !window.state.currentUser.isAnonymous) {
-          await deleteDoc(
-            doc(
-              db,
-              'artifacts',
-              appId,
-              'users',
-              window.state.userId,
-              'transactions',
-              txId
-            )
-          );
-        } else {
-          window.state.transactions = window.state.transactions.filter(
-            (t) => t.id !== txId
-          );
+        window.state.transactions = window.state.transactions.filter((t) => t.id !== txId);
+        if (window.state.isOnline) {
+          try {
+            await apiFetch(`/api/transactions/${txId}`, { method: 'DELETE' });
+          } catch (e) {
+            console.warn('Cloud delete tx error', e);
+          }
         }
         closeTxDetailModal();
         renderAll();
-        showToast('Đã xóa giao dịch');
+        showToast('Đã xóa giao dịch!');
       }
 
       window.openCategoryModal = function () {
@@ -2328,13 +2313,13 @@
       };
 
       window.saveProfileName = function () {
-        const newName = document
-          .getElementById('inputProfileName')
-          .value.trim();
+        const newName = document.getElementById('inputProfileName').value.trim();
         if (newName) {
-          document.getElementById('userName').textContent = newName;
-          document.getElementById('settingsUserName').textContent = newName;
-          showToast('Đã đổi tên hiển thị');
+          if (!window.config.user) window.config.user = {};
+          window.config.user.name = newName;
+          updateUserUI();
+          saveLocalData();
+          showToast('Đã đổi tên hiển thị!');
         }
         closeProfileModal();
       };
@@ -2357,12 +2342,33 @@
         toast.classList.remove('opacity-0', 'pointer-events-none');
         setTimeout(() => {
           toast.classList.add('opacity-0', 'pointer-events-none');
-        }, 2500);
+        }, 2800);
       }
 
-      // Initialize App on window load
       window.onload = function () {
-        initAuth();
+        // 1. Load Local Data
+        loadLocalData();
+
+        // 2. Set backend URL in input field if present
+        const urlInput = document.getElementById('inputApiUrl');
+        if (urlInput) {
+          urlInput.value = window.config.backendUrl;
+          urlInput.addEventListener('change', (e) => {
+            window.config.backendUrl = e.target.value.trim();
+            localStorage.setItem('cashflow_be_url', window.config.backendUrl);
+            testBackendConnection();
+          });
+        }
+
+        // 3. Initial rendering
+        renderAll();
+
+        // 4. Test connection & trigger Cloud sync
+        testBackendConnection().then((connected) => {
+          if (connected) {
+            syncWithCloudBackend();
+          }
+        });
       };
     </script>
   </body>
